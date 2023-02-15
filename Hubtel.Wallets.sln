@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.33122.133
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hubtel.Wallets.Api", "Hubtel.Wallets.Api\Hubtel.Wallets.Api.csproj", "{746BA682-B104-44A8-9FC8-95CB7133652D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hubtel.Wallets.Api.Tests", "Hubtel.Wallets.Api.Tests\Hubtel.Wallets.Api.Tests.csproj", "{2C933005-F185-4341-8CDB-27BA72CA543D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{746BA682-B104-44A8-9FC8-95CB7133652D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{746BA682-B104-44A8-9FC8-95CB7133652D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{746BA682-B104-44A8-9FC8-95CB7133652D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{746BA682-B104-44A8-9FC8-95CB7133652D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2C933005-F185-4341-8CDB-27BA72CA543D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2C933005-F185-4341-8CDB-27BA72CA543D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2C933005-F185-4341-8CDB-27BA72CA543D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2C933005-F185-4341-8CDB-27BA72CA543D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {CF4C2D05-B9BC-46EC-9D04-8205EAA00A17}
+	EndGlobalSection
+EndGlobal
