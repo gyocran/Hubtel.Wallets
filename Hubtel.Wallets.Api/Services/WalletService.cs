@@ -21,33 +21,18 @@ namespace Hubtel.Wallets.Api.Services
             _mapper = mapper;
         }
 
-        public string AddWallet(WalletDto wallet)
+        public int AddWallet(WalletDto wallet)
         {
-            if (_repo.WalletAlreadyExists(wallet.AccountNumber))
-                return "Wallet already exists";
-
-            if (_repo.WalletCountExceeded(wallet.Owner))
-                return "Wallet count limit exceeded";
-
-            // get scheme and type from db
-            var dbScheme = _repo.GetScheme(wallet.AccountScheme);
-            var dbType = _repo.GetType(wallet.Type);
-
-            if (dbScheme == null)
-                return "Scheme does not exist";
-
-            if (dbType == null)
-                return "Type does not exist";
-
-            if (AccountIsCard(dbType.Type.ToLower(), dbScheme.Scheme.ToLower()))
+            if (AccountIsCard(wallet))
             {
-                wallet.AccountNumber = Utilities.TrimCardNumber(wallet.AccountNumber);
+                Utilities.TrimCardNumber(wallet);
             }
 
-            var newWallet = ConvertDtoToWalletEntity(wallet, dbType, dbScheme);
+            var newWallet = ConvertDtoToWalletEntity(wallet);
 
             _repo.AddWallet(newWallet);
-            return null;
+
+            return newWallet.ID;
         }
 
         public List<WalletDto> GetAllWallets()
@@ -72,13 +57,16 @@ namespace Hubtel.Wallets.Api.Services
             return false;
         }
 
-        private bool AccountIsCard(string type, string scheme)
+        private bool AccountIsCard(WalletDto wallet)
         {
-            return type == "card" && (scheme == "visa" || scheme == "mastercard");
+            return wallet.Type.ToLower() == "card" && (wallet.AccountScheme.ToLower() == "visa" || wallet.AccountScheme.ToLower() == "mastercard");
         }
 
-        private Wallet ConvertDtoToWalletEntity(WalletDto walletDto, AccountType type, AccountScheme scheme)
+        private Wallet ConvertDtoToWalletEntity(WalletDto walletDto)
         {
+            var scheme = GetScheme(walletDto);
+            var type = GetType(walletDto);
+
             // populate fields for new wallet
             var newWallet = _mapper.Map<Wallet>(walletDto);
             newWallet.AccountScheme = scheme;
@@ -86,6 +74,62 @@ namespace Hubtel.Wallets.Api.Services
             newWallet.CreatedAt = DateTime.Now;
 
             return newWallet;
+        }
+
+        public bool WalletAlreadyExists(WalletDto wallet)
+        {
+            if (_repo.WalletAlreadyExists(wallet.AccountNumber))
+                return true;
+
+            return false;
+        }
+        
+        public bool WalletCountExceeded(WalletDto wallet)
+        {
+            if (_repo.WalletCountExceeded(wallet.Owner))
+                return true;
+
+            return false;
+        }
+
+        public AccountScheme GetScheme(WalletDto wallet)
+        {
+            return _repo.GetScheme(wallet.AccountScheme);
+        }
+
+        public AccountType GetType(WalletDto wallet)
+        {
+            return _repo.GetType(wallet.Type);
+        }
+
+        public bool AccountNumberLengthIsInvalid(WalletDto wallet)
+        {
+            Utilities.RemoveWhiteSpaces(wallet);
+
+            if (AccountIsCard(wallet))
+                return wallet.AccountNumber.Length > 16;
+            else
+                return wallet.AccountNumber.Length > 10;
+        }
+
+        public bool SchemeDoesNotExist(WalletDto wallet)
+        {
+            return _repo.SchemeDoesNotExist(wallet.AccountScheme);
+        }
+
+        public bool TypeDoesNotExist(WalletDto wallet)
+        {
+            return _repo.TypeDoesNotExist(wallet.Type);
+        }
+
+        public bool AccountNumberContainsNonNumeric(WalletDto wallet)
+        {
+            return Utilities.ContainsNonNumericCharacters(wallet.AccountNumber);
+        }
+
+        public bool OwnerContainsNonNumeric(WalletDto wallet)
+        {
+            return Utilities.ContainsNonNumericCharacters(wallet.Owner);
         }
     }
 }

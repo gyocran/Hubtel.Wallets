@@ -14,6 +14,8 @@ namespace Hubtel.Wallets.Api.Interfaces
         List<Wallet> GetAllWallets();
         AccountScheme GetScheme(string schemeName);
         AccountType GetType(string typeName);
-        int WalletCountLimit();
+        bool SchemeDoesNotExist(string schemeName);
+        bool TypeDoesNotExist(string typeName);
+        int GetWalletCountLimit();
     }
 }

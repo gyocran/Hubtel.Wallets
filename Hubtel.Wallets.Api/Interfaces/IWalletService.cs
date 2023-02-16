@@ -9,6 +9,15 @@ namespace Hubtel.Wallets.Api.Interfaces
         bool DeleteWallet(int Id);
         WalletDto GetWalletById(int Id);
         List<WalletDto> GetAllWallets();
-        string AddWallet(WalletDto wallet);
+        int AddWallet(WalletDto wallet);
+        bool WalletAlreadyExists(WalletDto wallet);
+        bool WalletCountExceeded(WalletDto wallet);
+        AccountScheme GetScheme(WalletDto wallet);
+        AccountType GetType(WalletDto wallet);
+        bool SchemeDoesNotExist(WalletDto wallet);
+        bool TypeDoesNotExist(WalletDto wallet);
+        bool AccountNumberLengthIsInvalid(WalletDto wallet);
+        bool AccountNumberContainsNonNumeric(WalletDto wallet);
+        bool OwnerContainsNonNumeric(WalletDto wallet);
     }
 }

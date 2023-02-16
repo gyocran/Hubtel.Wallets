@@ -60,16 +60,30 @@ namespace Hubtel.Wallets.Api.Controllers
                 if (wallet == null)
                     return BadRequest(ModelState);
 
-                var error = _service.AddWallet(wallet);
+                if (_service.AccountNumberContainsNonNumeric(wallet))
+                    return BadRequest("Account number contains non numeric characters");
 
-                if (!string.IsNullOrEmpty(error))
-                    return BadRequest(error);
+                if (_service.OwnerContainsNonNumeric(wallet))
+                    return BadRequest("Owner contains non numeric characters");
 
-                //wallet.AccountNumber
+                if (_service.WalletAlreadyExists(wallet))
+                    return BadRequest("Wallet already exists");
 
-                //_repo.AddWallet(D);
-                return Ok("wallet created");
-                //return Created();    
+                if (_service.WalletCountExceeded(wallet))
+                    return BadRequest("Wallet count limit exceeded");
+
+                if (_service.SchemeDoesNotExist(wallet))
+                    return BadRequest("Scheme does not exist");
+
+                if (_service.TypeDoesNotExist(wallet))
+                    return BadRequest("Type does not exist");
+
+                if (_service.AccountNumberLengthIsInvalid(wallet))
+                    return BadRequest("Account number length invalid");
+
+                var id = _service.AddWallet(wallet);
+
+                return Ok(id);
             }
             catch (Exception ex)
             {

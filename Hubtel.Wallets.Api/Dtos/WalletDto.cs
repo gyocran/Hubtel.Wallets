@@ -6,7 +6,7 @@ namespace Hubtel.Wallets.Api.DTOs
 {
     public class WalletDto
     {
-        public string ID { get; set; }
+        public int ID { get; set; }
         [Required]
         public string Name { get; set; }
         [Required]

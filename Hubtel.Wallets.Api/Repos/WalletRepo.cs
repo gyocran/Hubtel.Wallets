@@ -35,7 +35,6 @@ namespace Hubtel.Wallets.Api.Repos
 
         public Wallet GetWalletById(int Id)
         {
-            //var wallet = _context.Wallet.FirstOrDefault(w => w.Id == Id);
             return _context.Wallet
                 .Include(w => w.AccountScheme)
                 .Include(w => w.AccountType)
@@ -60,9 +59,9 @@ namespace Hubtel.Wallets.Api.Repos
         public bool WalletCountExceeded(string phoneNumber)
         {
             var count = _context.Wallet.ToList().Where(w => w.Owner == phoneNumber).Count();
-            var limit = WalletCountLimit();
+            var limit = GetWalletCountLimit();
             // return true if limit exceeded
-            return count > limit;
+            return count >= limit;
         }
 
         void save()
@@ -70,7 +69,7 @@ namespace Hubtel.Wallets.Api.Repos
             _context.SaveChanges();
         }
 
-        public int WalletCountLimit()
+        public int GetWalletCountLimit()
         {
             return _context.WalletLimit.FirstOrDefault().WalletCountLimit;
         }
@@ -83,6 +82,16 @@ namespace Hubtel.Wallets.Api.Repos
         public AccountType GetType(string typeName)
         {
             return _context.AccountType.FirstOrDefault(s => s.Type == typeName);
+        }
+
+        public bool SchemeDoesNotExist(string schemeName)
+        {
+            return _context.AccountScheme.FirstOrDefault(s => s.Scheme == schemeName) == null;
+        }
+
+        public bool TypeDoesNotExist(string typeName)
+        {
+            return _context.AccountType.FirstOrDefault(s => s.Type == typeName) == null;
         }
     }
 }
