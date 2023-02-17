@@ -9,9 +9,9 @@ namespace Hubtel.Wallets.Api.Helpers
         {
             wallet.AccountNumber = wallet.AccountNumber.Substring(0, 6);
         }
-        public static void RemoveWhiteSpaces(WalletDto wallet)
+        public static void RemoveWhiteSpaces(string number)
         {
-            wallet.AccountNumber = Regex.Replace(wallet.AccountNumber, @"\s+", "");
+            number = Regex.Replace(number, @"\s+", "");
         }
 
         public static bool ContainsNonNumericCharacters(string data)

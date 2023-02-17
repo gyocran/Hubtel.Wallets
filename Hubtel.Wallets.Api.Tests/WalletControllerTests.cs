@@ -104,24 +104,56 @@ namespace Hubtel.Wallets.Api.Tests
         }
 
         [Fact]
-        public void CreateWallet()
+        public void CreateWalletReturnsIdIfCreated()
         {
             // Arrange
             var mock = new Mock<IWalletService>();
-            mock.Setup(w => w.AddWallet(It.IsAny<WalletDto>())).Returns("Wallet already exists");
+            mock.Setup(w => w.AddWallet(It.IsAny<WalletDto>())).Returns(5);
             var walletController = new WalletController(mock.Object);
 
             // Act
-            var result = walletController.Post(It.IsAny<WalletDto>());
+            var result = walletController.Post(testWalletDto);
 
             // Assert
             var okResult = result as OkObjectResult;
-            var message = okResult.Value;
-            Assert.Equal("wallet created", message);
+            var id = okResult.Value;
+            Assert.Equal(5, id);
         }
 
         [Fact]
-        public void DeleteWallet()
+        public void CreateWalletReturnsBadRequestIfNullPassed()
+        {
+            // Arrange
+            var mock = new Mock<IWalletService>();
+            var walletController = new WalletController(mock.Object);
+
+            // Act
+            var result = walletController.Post(null);
+
+            // Assert
+            var badResult = result as BadRequestObjectResult;
+            Assert.IsType<SerializableError>(badResult.Value);
+        }
+
+        [Fact]
+        public void CreateWalletReturnsBadRequestIfErrorFound()
+        {
+            // Arrange
+            var mock = new Mock<IWalletService>();
+            mock.Setup(w => w.ReturnWalletError(testWalletDto)).Returns("Wallet already exists");
+            var walletController = new WalletController(mock.Object);
+
+            // Act
+            var result = walletController.Post(testWalletDto);
+
+            // Assert
+            var badResult = result as BadRequestObjectResult;
+            var message = badResult.Value;
+            Assert.Equal("Wallet already exists", message);
+        }
+
+        [Fact]
+        public void DeleteWalletReturnsNotFoundIfIdInvalid()
         {
             // Arrange
             var mock = new Mock<IWalletService>();
@@ -129,12 +161,43 @@ namespace Hubtel.Wallets.Api.Tests
             var walletController = new WalletController(mock.Object);
 
             // Act
-            var result = walletController.Delete(It.IsAny<int>());
+            var result = walletController.Delete(0);
 
             // Assert
-            var acceptedResult = result as AcceptedAtActionResult;
-            //var actionResult = Assert.IsType<ActionResult<List<IdeaDTO>>>(result);
-            Assert.IsType<AcceptedAtActionResult>(acceptedResult);
+            var objectResult = result as NotFoundResult;
+            Assert.IsType<NotFoundResult>(objectResult);
+        }
+
+        [Fact]
+        public void DeleteWalletReturnsNotFoundIfIdNotInDb()
+        {
+            // Arrange
+            var mock = new Mock<IWalletService>();
+            mock.Setup(w => w.DeleteWallet(It.IsAny<int>())).Returns(false);
+            var walletController = new WalletController(mock.Object);
+
+            // Act
+            var result = walletController.Delete(4);
+
+            // Assert
+            var objectResult = result as NotFoundResult;
+            Assert.IsType<NotFoundResult>(objectResult);
+        }
+
+        [Fact]
+        public void DeleteWalletReturnsAcceptedIfDeleted()
+        {
+            // Arrange
+            var mock = new Mock<IWalletService>();
+            mock.Setup(w => w.DeleteWallet(It.IsAny<int>())).Returns(true);
+            var walletController = new WalletController(mock.Object);
+
+            // Act
+            var result = walletController.Delete(4);
+
+            // Assert
+            var objectResult = result as AcceptedResult;
+            Assert.IsType<AcceptedResult>(objectResult);
         }
     }
 }

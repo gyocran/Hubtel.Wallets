@@ -24,9 +24,7 @@ namespace Hubtel.Wallets.Api.Services
         public int AddWallet(WalletDto wallet)
         {
             if (AccountIsCard(wallet))
-            {
                 Utilities.TrimCardNumber(wallet);
-            }
 
             var newWallet = ConvertDtoToWalletEntity(wallet);
 
@@ -104,12 +102,19 @@ namespace Hubtel.Wallets.Api.Services
 
         public bool AccountNumberLengthIsInvalid(WalletDto wallet)
         {
-            Utilities.RemoveWhiteSpaces(wallet);
+            Utilities.RemoveWhiteSpaces(wallet.AccountNumber);
 
             if (AccountIsCard(wallet))
                 return wallet.AccountNumber.Length > 16;
             else
                 return wallet.AccountNumber.Length > 10;
+        }
+
+        public bool OwnerLengthIsInvalid(WalletDto wallet)
+        {
+            Utilities.RemoveWhiteSpaces(wallet.Owner);
+
+            return wallet.Owner.Length > 10;
         }
 
         public bool SchemeDoesNotExist(WalletDto wallet)
@@ -130,6 +135,35 @@ namespace Hubtel.Wallets.Api.Services
         public bool OwnerContainsNonNumeric(WalletDto wallet)
         {
             return Utilities.ContainsNonNumericCharacters(wallet.Owner);
+        }
+
+        public string ReturnWalletError(WalletDto wallet)
+        {
+            if (AccountNumberContainsNonNumeric(wallet))
+                return "Account number contains non numeric characters";
+
+            if (OwnerContainsNonNumeric(wallet))
+                return "Owner contains non numeric characters";
+
+            if (WalletAlreadyExists(wallet))
+                return "Wallet already exists";
+
+            if (WalletCountExceeded(wallet))
+                return "Wallet count limit exceeded";
+
+            if (SchemeDoesNotExist(wallet))
+                return "Scheme does not exist";
+
+            if (TypeDoesNotExist(wallet))
+                return "Type does not exist";
+
+            if (AccountNumberLengthIsInvalid(wallet))
+                return "Account number length invalid";
+
+            if (OwnerLengthIsInvalid(wallet))
+                return "Owner length invalid";
+
+            return string.Empty;
         }
     }
 }

@@ -19,5 +19,7 @@ namespace Hubtel.Wallets.Api.Interfaces
         bool AccountNumberLengthIsInvalid(WalletDto wallet);
         bool AccountNumberContainsNonNumeric(WalletDto wallet);
         bool OwnerContainsNonNumeric(WalletDto wallet);
+        bool OwnerLengthIsInvalid(WalletDto wallet);
+        string ReturnWalletError(WalletDto wallet);
     }
 }
