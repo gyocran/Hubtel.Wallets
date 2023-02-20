@@ -1,4 +1,5 @@
 using Hubtel.Wallets.Api.Data;
+using Hubtel.Wallets.Api.Helpers;
 using Hubtel.Wallets.Api.Interfaces;
 using Hubtel.Wallets.Api.Repos;
 using Hubtel.Wallets.Api.Services;
@@ -32,6 +33,7 @@ namespace Hubtel.Wallets.Api
             });
             services.AddScoped<IWalletRepo, WalletRepo>();
             services.AddScoped<IWalletService, WalletService>();
+            services.AddScoped<IUtilities, Utilities>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Drawing;
 
 namespace Hubtel.Wallets.Api.Services
 {
@@ -14,17 +15,19 @@ namespace Hubtel.Wallets.Api.Services
     {
         private IMapper _mapper;
         private IWalletRepo _repo;
+        private IUtilities _utils;
 
-        public WalletService(IWalletRepo repo, IMapper mapper)
+        public WalletService(IWalletRepo repo, IMapper mapper, IUtilities utils)
         {
             _repo = repo;
             _mapper = mapper;
+            _utils = utils;
         }
 
         public int AddWallet(WalletDto wallet)
         {
             if (AccountIsCard(wallet))
-                Utilities.TrimCardNumber(wallet);
+                _utils.TrimCardNumber(wallet);
 
             var newWallet = ConvertDtoToWalletEntity(wallet);
 
@@ -55,12 +58,13 @@ namespace Hubtel.Wallets.Api.Services
             return false;
         }
 
-        private bool AccountIsCard(WalletDto wallet)
+        public bool AccountIsCard(WalletDto wallet)
         {
-            return wallet.Type.ToLower() == "card" && (wallet.AccountScheme.ToLower() == "visa" || wallet.AccountScheme.ToLower() == "mastercard");
+            return wallet.Type.ToLower() == "card" && 
+                (wallet.AccountScheme.ToLower() == "visa" || wallet.AccountScheme.ToLower() == "mastercard");
         }
 
-        private Wallet ConvertDtoToWalletEntity(WalletDto walletDto)
+        public Wallet ConvertDtoToWalletEntity(WalletDto walletDto)
         {
             var scheme = GetScheme(walletDto);
             var type = GetType(walletDto);
@@ -74,20 +78,21 @@ namespace Hubtel.Wallets.Api.Services
             return newWallet;
         }
 
-        public bool WalletAlreadyExists(WalletDto wallet)
+        public bool WalletAlreadyExists(WalletDto walletDto)
         {
-            if (_repo.WalletAlreadyExists(wallet.AccountNumber))
-                return true;
+            var wallet = _repo.GetWalletByAccountNumber(walletDto.AccountNumber);
 
-            return false;
+            // return true if exists
+            return wallet != null;
         }
         
         public bool WalletCountExceeded(WalletDto wallet)
         {
-            if (_repo.WalletCountExceeded(wallet.Owner))
-                return true;
+            var ownerWalletCount = _repo.GetOwnerWalletCount(wallet.Owner);
+            var walletCountLimit = _repo.GetWalletCountLimit();
 
-            return false;
+            // return true if limit exceeded
+            return ownerWalletCount >= walletCountLimit;
         }
 
         public AccountScheme GetScheme(WalletDto wallet)
@@ -102,39 +107,43 @@ namespace Hubtel.Wallets.Api.Services
 
         public bool AccountNumberLengthIsInvalid(WalletDto wallet)
         {
-            Utilities.RemoveWhiteSpaces(wallet.AccountNumber);
+            _utils.RemoveWhiteSpaces(wallet.AccountNumber);
 
             if (AccountIsCard(wallet))
-                return wallet.AccountNumber.Length > 16;
+                return wallet.AccountNumber.Length != 16;
             else
-                return wallet.AccountNumber.Length > 10;
+                return wallet.AccountNumber.Length != 10;
         }
 
         public bool OwnerLengthIsInvalid(WalletDto wallet)
         {
-            Utilities.RemoveWhiteSpaces(wallet.Owner);
+            _utils.RemoveWhiteSpaces(wallet.Owner);
 
             return wallet.Owner.Length > 10;
         }
 
         public bool SchemeDoesNotExist(WalletDto wallet)
         {
-            return _repo.SchemeDoesNotExist(wallet.AccountScheme);
+            var scheme = _repo.GetScheme(wallet.AccountScheme);
+            // return true if does not exist
+            return scheme == null;
         }
 
         public bool TypeDoesNotExist(WalletDto wallet)
         {
-            return _repo.TypeDoesNotExist(wallet.Type);
+            var type = _repo.GetType(wallet.Type);
+            // return true if does not exist
+            return type == null;
         }
 
         public bool AccountNumberContainsNonNumeric(WalletDto wallet)
         {
-            return Utilities.ContainsNonNumericCharacters(wallet.AccountNumber);
+            return _utils.ContainsNonNumericCharacters(wallet.AccountNumber);
         }
 
         public bool OwnerContainsNonNumeric(WalletDto wallet)
         {
-            return Utilities.ContainsNonNumericCharacters(wallet.Owner);
+            return _utils.ContainsNonNumericCharacters(wallet.Owner);
         }
 
         public string ReturnWalletError(WalletDto wallet)
@@ -145,11 +154,11 @@ namespace Hubtel.Wallets.Api.Services
             if (OwnerContainsNonNumeric(wallet))
                 return "Owner contains non numeric characters";
 
-            if (WalletAlreadyExists(wallet))
-                return "Wallet already exists";
+            if (AccountNumberLengthIsInvalid(wallet))
+                return "Account number length invalid";
 
-            if (WalletCountExceeded(wallet))
-                return "Wallet count limit exceeded";
+            if (OwnerLengthIsInvalid(wallet))
+                return "Owner length invalid";
 
             if (SchemeDoesNotExist(wallet))
                 return "Scheme does not exist";
@@ -157,13 +166,29 @@ namespace Hubtel.Wallets.Api.Services
             if (TypeDoesNotExist(wallet))
                 return "Type does not exist";
 
-            if (AccountNumberLengthIsInvalid(wallet))
-                return "Account number length invalid";
+            if (TypeSchemeMismatch(wallet))
+                return "Type scheme mismatch";
 
-            if (OwnerLengthIsInvalid(wallet))
-                return "Owner length invalid";
+            if (WalletAlreadyExists(wallet))
+                return "Wallet already exists";
+
+            if (WalletCountExceeded(wallet))
+                return "Wallet count limit exceeded";                    
 
             return string.Empty;
+        }
+
+        public bool TypeSchemeMismatch(WalletDto wallet)
+        {
+            var type = wallet.Type.ToLower();
+            List<AccountScheme> schemes;
+
+            if (type == "momo")
+                schemes = _repo.GetMomoSchemes();
+            else
+                schemes = _repo.GetCardSchemes();
+
+            return !schemes.Exists(s => s.Scheme.ToLower() == wallet.AccountScheme.ToLower());
         }
     }
 }

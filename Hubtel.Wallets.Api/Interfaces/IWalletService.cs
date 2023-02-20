@@ -21,5 +21,8 @@ namespace Hubtel.Wallets.Api.Interfaces
         bool OwnerContainsNonNumeric(WalletDto wallet);
         bool OwnerLengthIsInvalid(WalletDto wallet);
         string ReturnWalletError(WalletDto wallet);
+        bool AccountIsCard(WalletDto wallet);
+        bool TypeSchemeMismatch(WalletDto wallet);
+        Wallet ConvertDtoToWalletEntity(WalletDto walletDto);
     }
 }

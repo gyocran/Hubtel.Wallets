@@ -17,9 +17,13 @@ namespace Hubtel.Wallets.Api.Tests
         WalletDto walletDto;
         List<Wallet> allWallets;
         IMapper mapper;
+        Mock<IUtilities> utilsMock;
+        Mock<IWalletRepo> repoMock;
 
         public WalletServiceTests()
         {
+            utilsMock = new Mock<IUtilities>();
+            repoMock = new Mock<IWalletRepo>();
             allWallets = new List<Wallet>
             {
                 new Wallet
@@ -67,6 +71,7 @@ namespace Hubtel.Wallets.Api.Tests
 
             walletDto = new WalletDto
             {
+                ID = 2,
                 Name= "test wallet",
                 Type = "card",
                 AccountNumber = "0000000000000000",
@@ -85,25 +90,23 @@ namespace Hubtel.Wallets.Api.Tests
         public void AddWalletReturnsWalletId()
         {
             // Arrange
-            var mock = new Mock<IWalletRepo>();
-            mock.Setup(w => w.AddWallet(testWallet)).Callback(() => testWallet.ID = 3);
-            var walletService = new WalletService(mock.Object, mapper);
+            utilsMock.Setup(u => u.TrimCardNumber(It.IsAny<WalletDto>())).Callback(() => walletDto.AccountNumber = walletDto.AccountNumber);
+            repoMock.Setup(w => w.AddWallet(testWallet)).Callback(() => testWallet.ID = 3);
+            var walletService = new WalletService(repoMock.Object, mapper, utilsMock.Object);
 
             // Act
             var walletId = walletService.AddWallet(walletDto);
 
             // Assert
-            //mock.Verify(m => m.AddWallet(testWallet), Times.Once());
             Assert.Equal(3, walletId);
         }
 
         [Fact]
         public void GetByIdReturnsData()
         {
-            // Arrange
-            var mock = new Mock<IWalletRepo>();
-            mock.Setup(w => w.GetWalletById(1)).Returns(testWallet);
-            var walletService = new WalletService(mock.Object, mapper);
+            // Arrange            
+            repoMock.Setup(w => w.GetWalletById(1)).Returns(testWallet);
+            var walletService = new WalletService(repoMock.Object, mapper, utilsMock.Object);
 
             // Act
             var wallet = walletService.GetWalletById(1);
@@ -115,10 +118,9 @@ namespace Hubtel.Wallets.Api.Tests
         [Fact]
         public void ReturnsTrueIfAccountAlreadyExists()
         {
-            // Arrange
-            var mock = new Mock<IWalletRepo>();
-            mock.Setup(w => w.WalletAlreadyExists(It.IsAny<string>())).Returns(true);
-            var walletService = new WalletService(mock.Object, mapper);
+            // Arrange            
+            repoMock.Setup(w => w.WalletAlreadyExists(It.IsAny<string>())).Returns(true);
+            var walletService = new WalletService(repoMock.Object, mapper, utilsMock.Object);
 
             // Act
             var exists = walletService.WalletAlreadyExists(walletDto);
@@ -130,10 +132,9 @@ namespace Hubtel.Wallets.Api.Tests
         [Fact]
         public void ReturnsErrorIfWalletCountExceeded()
         {
-            // Arrange
-            var mock = new Mock<IWalletRepo>();
-            mock.Setup(w => w.WalletCountExceeded(It.IsAny<string>())).Returns(true);
-            var walletService = new WalletService(mock.Object, mapper);
+            // Arrange            
+            repoMock.Setup(w => w.WalletCountExceeded(It.IsAny<string>())).Returns(true);
+            var walletService = new WalletService(repoMock.Object, mapper, utilsMock.Object);
 
             // Act
             var exceeded = walletService.WalletCountExceeded(walletDto);
@@ -145,10 +146,9 @@ namespace Hubtel.Wallets.Api.Tests
         [Fact]
         public void ReturnsTrueIfSchemeNotFound()
         {
-            // Arrange
-            var mock = new Mock<IWalletRepo>();
-            mock.Setup(w => w.SchemeDoesNotExist(It.IsAny<string>())).Returns(true);
-            var walletService = new WalletService(mock.Object, mapper);
+            // Arrange            
+            repoMock.Setup(w => w.GetScheme(It.IsAny<string>())).Returns(() => null);
+            var walletService = new WalletService(repoMock.Object, mapper, utilsMock.Object);
 
             // Act
             var notExists = walletService.SchemeDoesNotExist(walletDto);
@@ -160,10 +160,9 @@ namespace Hubtel.Wallets.Api.Tests
         [Fact]
         public void ReturnsTrueIfTypeNotFound()
         {
-            // Arrange
-            var mock = new Mock<IWalletRepo>();
-            mock.Setup(w => w.TypeDoesNotExist(It.IsAny<string>())).Returns(true);
-            var walletService = new WalletService(mock.Object, mapper);
+            // Arrange            
+            repoMock.Setup(w => w.GetType(It.IsAny<string>())).Returns(() => null);
+            var walletService = new WalletService(repoMock.Object, mapper, utilsMock.Object);
 
             // Act
             var notExists = walletService.TypeDoesNotExist(walletDto);
@@ -176,10 +175,10 @@ namespace Hubtel.Wallets.Api.Tests
         //public void AddTrimsNumberIfVisaCard()
         //{
         //    // Arrange
-        //    var mock = new Mock<IWalletRepo>();
-        //    mock.Setup(w => w.GetScheme(It.IsAny<string>())).Returns(new AccountScheme { ID = 1, Scheme = "visa" });
-        //    mock.Setup(w => w.GetType(It.IsAny<string>())).Returns(new AccountType { ID = 1, Type = "card"});
-        //    var walletService = new WalletService(mock.Object, mapper);
+        //    
+        //    repoMock.Setup(w => w.GetScheme(It.IsAny<string>())).Returns(new AccountScheme { ID = 1, Scheme = "visa" });
+        //    repoMock.Setup(w => w.GetType(It.IsAny<string>())).Returns(new AccountType { ID = 1, Type = "card"});
+        //    var walletService = new WalletService(repoMock.Object, mapper, utilsMock.Object);
 
         //    // Act
         //    walletService.AddWallet(walletDto);
@@ -192,10 +191,10 @@ namespace Hubtel.Wallets.Api.Tests
         //public void AddTrimsNumberIfMasterCard()
         //{
         //    // Arrange
-        //    var mock = new Mock<IWalletRepo>();
-        //    mock.Setup(w => w.GetScheme(It.IsAny<string>())).Returns(new AccountScheme { ID = 1, Scheme = "mastercard" });
-        //    mock.Setup(w => w.GetType(It.IsAny<string>())).Returns(new AccountType { ID = 1, Type = "card" });
-        //    var walletService = new WalletService(mock.Object, mapper);
+        //    
+        //    repoMock.Setup(w => w.GetScheme(It.IsAny<string>())).Returns(new AccountScheme { ID = 1, Scheme = "mastercard" });
+        //    repoMock.Setup(w => w.GetType(It.IsAny<string>())).Returns(new AccountType { ID = 1, Type = "card" });
+        //    var walletService = new WalletService(repoMock.Object, mapper, utilsMock.Object);
 
         //    // Act
         //    walletService.AddWallet(walletDto);
@@ -207,10 +206,9 @@ namespace Hubtel.Wallets.Api.Tests
         [Fact]
         public void GetAllWalletsReturnsData()
         {
-            // Arrange
-            var mock = new Mock<IWalletRepo>();
-            mock.Setup(w => w.GetAllWallets()).Returns(allWallets);
-            var walletService = new WalletService(mock.Object, mapper);
+            // Arrange            
+            repoMock.Setup(w => w.GetAllWallets()).Returns(allWallets);
+            var walletService = new WalletService(repoMock.Object, mapper, utilsMock.Object);
 
             // Act
             var wallets = walletService.GetAllWallets();
@@ -222,27 +220,25 @@ namespace Hubtel.Wallets.Api.Tests
         [Fact]
         public void DeleteWallet()
         {
-            // Arrange
-            var mock = new Mock<IWalletRepo>();
-            mock.Setup(w => w.GetWalletById(It.IsAny<int>())).Returns(testWallet);
-            mock.Setup(w => w.DeleteWallet(It.IsAny<Wallet>())).Verifiable();
-            var walletService = new WalletService(mock.Object, mapper);
+            // Arrange            
+            repoMock.Setup(w => w.GetWalletById(It.IsAny<int>())).Returns(testWallet);
+            repoMock.Setup(w => w.DeleteWallet(It.IsAny<Wallet>())).Verifiable();
+            var walletService = new WalletService(repoMock.Object, mapper, utilsMock.Object);
 
             // Act
             var deleted = walletService.DeleteWallet(testWallet.ID);
 
             // Assert
-            mock.Verify(m => m.DeleteWallet(It.IsAny<Wallet>()), Times.Once());
+            repoMock.Verify(m => m.DeleteWallet(It.IsAny<Wallet>()), Times.Once());
             Assert.True(deleted);
         }
 
         [Fact]
         public void GetSchemeReturnsScheme()
         {
-            // Arrange
-            var mock = new Mock<IWalletRepo>();
-            mock.Setup(w => w.GetScheme(It.IsAny<string>())).Returns(new AccountScheme { ID = 1, Scheme = "visa" });
-            var walletService = new WalletService(mock.Object, mapper);
+            // Arrange            
+            repoMock.Setup(w => w.GetScheme(It.IsAny<string>())).Returns(new AccountScheme { ID = 1, Scheme = "visa" });
+            var walletService = new WalletService(repoMock.Object, mapper, utilsMock.Object);
 
             // Act
             var scheme = walletService.GetScheme(walletDto);
@@ -255,10 +251,9 @@ namespace Hubtel.Wallets.Api.Tests
         [Fact]
         public void GetTypeReturnsType()
         {
-            // Arrange
-            var mock = new Mock<IWalletRepo>();
-            mock.Setup(w => w.GetType(It.IsAny<string>())).Returns(new AccountType { ID = 1, Type = "momo" });
-            var walletService = new WalletService(mock.Object, mapper);
+            // Arrange            
+            repoMock.Setup(w => w.GetType(It.IsAny<string>())).Returns(new AccountType { ID = 1, Type = "momo" });
+            var walletService = new WalletService(repoMock.Object, mapper, utilsMock.Object);
 
             // Act
             var type = walletService.GetType(walletDto);
@@ -271,10 +266,9 @@ namespace Hubtel.Wallets.Api.Tests
         [Fact]
         public void ReturnsTrueIfCardAccountNumberLengthIsInvalid()
         {
-            // Arrange
-            var mock = new Mock<IWalletRepo>();
+            // Arrange            
             walletDto.AccountNumber = "24334234324343242342432432432";
-            var walletService = new WalletService(mock.Object, mapper);
+            var walletService = new WalletService(repoMock.Object, mapper, utilsMock.Object);
 
             // Act
             var invalid = walletService.AccountNumberLengthIsInvalid(walletDto);
@@ -286,10 +280,9 @@ namespace Hubtel.Wallets.Api.Tests
         [Fact]
         public void ReturnsTrueIfOwnerLengthIsInvalid()
         {
-            // Arrange
-            var mock = new Mock<IWalletRepo>();
+            // Arrange            
             walletDto.Owner = "345433433454354345";
-            var walletService = new WalletService(mock.Object, mapper);
+            var walletService = new WalletService(repoMock.Object, mapper, utilsMock.Object);
 
             // Act
             var invalid = walletService.OwnerLengthIsInvalid(walletDto);
@@ -301,12 +294,13 @@ namespace Hubtel.Wallets.Api.Tests
         [Fact]
         public void ReturnsTrueIfMomoAccountNumberLengthIsInvalid()
         {
-            // Arrange
-            var mock = new Mock<IWalletRepo>();
+            // Arrange            
             walletDto.Type = "card";
             walletDto.AccountScheme = "mtn";
             walletDto.AccountNumber = "3243252352423";
-            var walletService = new WalletService(mock.Object, mapper);
+            var utilsMock = new Mock<IUtilities>();
+            utilsMock.Setup(u => u.RemoveWhiteSpaces("asads")).Callback(() => walletDto.AccountNumber = walletDto.AccountNumber);
+            var walletService = new WalletService(repoMock.Object, mapper, utilsMock.Object);
 
             // Act
             var invalid = walletService.AccountNumberLengthIsInvalid(walletDto);
@@ -318,10 +312,10 @@ namespace Hubtel.Wallets.Api.Tests
         [Fact]
         public void ReturnsTrueIfAccountNumberContainsNonNumeric()
         {
-            // Arrange
-            var mock = new Mock<IWalletRepo>();
+            // Arrange            
             walletDto.AccountNumber = "dsafds3243252352423";
-            var walletService = new WalletService(mock.Object, mapper);
+            var walletService = new WalletService(repoMock.Object, mapper, utilsMock.Object);
+            utilsMock.Setup(u => u.ContainsNonNumericCharacters(It.IsAny<string>())).Returns(true);
 
             // Act
             var invalid = walletService.AccountNumberContainsNonNumeric(walletDto);
@@ -333,10 +327,10 @@ namespace Hubtel.Wallets.Api.Tests
         [Fact]
         public void ReturnsTrueIfOwnerContainsNonNumeric()
         {
-            // Arrange
-            var mock = new Mock<IWalletRepo>();
+            // Arrange            
             walletDto.Owner = "dsafd352423";
-            var walletService = new WalletService(mock.Object, mapper);
+            var walletService = new WalletService(repoMock.Object, mapper, utilsMock.Object);
+            utilsMock.Setup(u => u.ContainsNonNumericCharacters(It.IsAny<string>())).Returns(true);
 
             // Act
             var invalid = walletService.OwnerContainsNonNumeric(walletDto);
