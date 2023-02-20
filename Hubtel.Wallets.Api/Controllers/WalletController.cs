@@ -41,11 +41,11 @@ namespace Hubtel.Wallets.Api.Controllers
         
         // GET api/<WalletController>/5
         [HttpGet("all")]
-        public IActionResult GetAll()
+        public IActionResult GetAll([FromQuery] AllWalletsParameters queryParams)
         {
             try
             {
-                var wallets = _service.GetAllWallets();
+                var wallets = _service.GetAllWallets(queryParams);
                 return Ok(wallets);
             }
             catch (Exception ex)

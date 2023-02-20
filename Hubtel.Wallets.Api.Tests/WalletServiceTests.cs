@@ -116,10 +116,10 @@ namespace Hubtel.Wallets.Api.Tests
         }
 
         [Fact]
-        public void ReturnsTrueIfAccountAlreadyExists()
+        public void ReturnsTrueIfWalletAlreadyExists()
         {
             // Arrange            
-            repoMock.Setup(w => w.WalletAlreadyExists(It.IsAny<string>())).Returns(true);
+            repoMock.Setup(w => w.GetWalletByAccountNumber(It.IsAny<string>())).Returns(allWallets[1]);
             var walletService = new WalletService(repoMock.Object, mapper, utilsMock.Object);
 
             // Act
@@ -133,7 +133,8 @@ namespace Hubtel.Wallets.Api.Tests
         public void ReturnsErrorIfWalletCountExceeded()
         {
             // Arrange            
-            repoMock.Setup(w => w.WalletCountExceeded(It.IsAny<string>())).Returns(true);
+            repoMock.Setup(w => w.GetOwnerWalletCount(It.IsAny<string>())).Returns(6);
+            repoMock.Setup(w => w.GetWalletCountLimit()).Returns(5);
             var walletService = new WalletService(repoMock.Object, mapper, utilsMock.Object);
 
             // Act
@@ -207,14 +208,15 @@ namespace Hubtel.Wallets.Api.Tests
         public void GetAllWalletsReturnsData()
         {
             // Arrange            
+            var queryParams = new AllWalletsParameters { PageNumber = 1, PageSize = 2 };
             repoMock.Setup(w => w.GetAllWallets()).Returns(allWallets);
             var walletService = new WalletService(repoMock.Object, mapper, utilsMock.Object);
 
             // Act
-            var wallets = walletService.GetAllWallets();
+            var wallets = walletService.GetAllWallets(queryParams);
 
             // Assert
-            Assert.Equal(3, wallets.Count);
+            Assert.Equal(2, wallets.Count);
         }
 
         [Fact]

@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Drawing;
+using System.Linq;
 
 namespace Hubtel.Wallets.Api.Services
 {
@@ -36,9 +37,13 @@ namespace Hubtel.Wallets.Api.Services
             return newWallet.ID;
         }
 
-        public List<WalletDto> GetAllWallets()
+        public List<WalletDto> GetAllWallets(AllWalletsParameters queryParams)
         {
-            return _mapper.Map<List<WalletDto>>(_repo.GetAllWallets());
+            var allWallets = _mapper.Map<List<WalletDto>>(_repo.GetAllWallets());
+            return allWallets
+                .Skip((queryParams.PageNumber - 1) * queryParams.PageSize)
+                .Take(queryParams.PageSize)
+                .ToList();
         }
 
         public WalletDto GetWalletById(int Id)

@@ -89,12 +89,14 @@ namespace Hubtel.Wallets.Api.Tests
         public void GetAllReturnsWallets()
         {
             // Arrange
+            var results = testWalletDtoList.Skip(0).Take(5).ToList();
+            var queryParams = new AllWalletsParameters { PageNumber = 1, PageSize = 5 };
             var mock = new Mock<IWalletService>();
-            mock.Setup(w => w.GetAllWallets()).Returns(testWalletDtoList);
+            mock.Setup(w => w.GetAllWallets(queryParams)).Returns(testWalletDtoList);
             var walletController = new WalletController(mock.Object);
 
             // Act
-            var result = walletController.GetAll();
+            var result = walletController.GetAll(queryParams);
 
             // Assert
             var okResult = result as OkObjectResult;

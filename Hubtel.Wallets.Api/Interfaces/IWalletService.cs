@@ -8,7 +8,7 @@ namespace Hubtel.Wallets.Api.Interfaces
     {
         bool DeleteWallet(int Id);
         WalletDto GetWalletById(int Id);
-        List<WalletDto> GetAllWallets();
+        List<WalletDto> GetAllWallets(AllWalletsParameters queryParams);
         int AddWallet(WalletDto wallet);
         bool WalletAlreadyExists(WalletDto wallet);
         bool WalletCountExceeded(WalletDto wallet);

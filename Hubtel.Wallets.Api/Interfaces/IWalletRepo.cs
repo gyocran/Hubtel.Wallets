@@ -10,8 +10,6 @@ namespace Hubtel.Wallets.Api.Interfaces
         void AddWallet(Wallet wallet);
         void DeleteWallet(Wallet wallet);
         Wallet GetWalletByAccountNumber(string accountNumber);
-        bool WalletAlreadyExists(string accountNumber);
-        bool WalletCountExceeded(string phoneNumber);
         Wallet GetWalletById(int Id);
         List<Wallet> GetAllWallets();
         AccountScheme GetScheme(string schemeName);

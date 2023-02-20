@@ -49,22 +49,6 @@ namespace Hubtel.Wallets.Api.Repos
             save();
         }
 
-        //public bool WalletAlreadyExists(string accountNumber)
-        //{
-        //    var wallet = _context.Wallet.FirstOrDefault(w => w.AccountNumber == accountNumber);
-
-        //    // return true if wallet exists;
-        //    return wallet != null;
-        //}
-
-        //public bool WalletCountExceeded(string phoneNumber)
-        //{
-        //    var count = _context.Wallet.ToList().Where(w => w.Owner == phoneNumber).Count();
-        //    var limit = GetWalletCountLimit();
-        //    // return true if limit exceeded
-        //    return count >= limit;
-        //}
-
         void save()
         {
             _context.SaveChanges();
